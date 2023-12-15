@@ -5,6 +5,7 @@ const catchAsyncErrors = require('../utils/catchAsyncError');
 const jwt = require('jsonwebtoken');
 const AppError = require('../utils/appError');
 const sendEmail = require('./../utils/email');
+const catchAsyncError = require('../utils/catchAsyncError');
 const createToken = (id) => {
   /**jwt.sign(payload, secretOrPrivateKey, [options, callback]) */
   return jwt.sign({ id }, process.env.jwt_secret_private_key, {
@@ -80,13 +81,13 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
   /**1) Get the token and check if it is present or not */
 
   let token;
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+  if (req.cookies.jwt) {
+    token = req.cookies.jwt;
+  } else if (req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
-    // console.log(token);
   }
+  // Otherwise, check for a cookie named "jwt" and use its value as the token
+  console.log('vaibhav the great', token);
   if (!token) {
     return next(
       new AppError(
@@ -120,11 +121,15 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
     );
   }
   /**5) GRANT ACCESS TO PROTECTED ROUTES-->IMP IN RESTRICT-TO */
+
   req.user = freshUser;
+
+  res.locals.user = freshUser;
+
   next();
 });
 
-exports.isLoggedIn = catchAsyncErrors(async (req, res, next) => {
+exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
   /**1) Get the token and check if it is present or not */
   if (req.cookies.jwt) {
     try {
@@ -246,8 +251,8 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
 
 exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
   /**1) GET THE USER FROM THE COLLECTION*/
-  console.log(req.user);
   const user = await User.findById(req.user.id).select('+password');
+  // console.log(req.body, user.password);
 
   /**2) CHECK IF POSTED CURRENT PASSWORD IS CORRECT OR NOT*/
 
@@ -256,8 +261,9 @@ exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
 
   /**3) IF SO THEN UPDATE PASSWORD --> we cannot user findByIdAndUpdate*/
 
-  user.password = req.body.password;
-  user.passwordConfirm = req.body.passwordConfirm;
+  console.log(req.body, req.body.data.password, req.body.passwordConfirm);
+  user.password = req.body.data.password;
+  user.passwordConfirm = req.body.data.passwordConfirm;
   await user.save();
 
   /**4) LOG USER IN SEND A JWT*/

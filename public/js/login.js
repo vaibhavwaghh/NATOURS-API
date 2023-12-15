@@ -1,4 +1,6 @@
-const login = async (email, password) => {
+import { showAlert } from './alerts';
+
+export const login = async (email, password) => {
   try {
     // Sending a POST request to the login endpoint with email and password in the request body
     const res = await fetch('http://127.0.0.1:3900/api/v1/users/login', {
@@ -19,25 +21,34 @@ const login = async (email, password) => {
     console.log(data);
 
     // Showing an alert message if the login was successful and redirecting to the home page
-    // if (data.status === 'success') {
-    //   showAlert('success', 'Logged in Successfully!');
+    if (data.status === 'success') {
+      showAlert('success', 'Logged In successfully');
 
-    //   setTimeout(() => {
-    //     location.assign('/');
-    //   }, 1500);
-    // } else {
-    // Showing an alert message with the error message if the login failed
-    // showAlert('error', data.message);
+      window.setTimeout(() => {
+        location.assign('/');
+      }, 1500);
+    } else if (data.status === 'failed') {
+      showAlert('error', data.message);
+    }
   } catch (error) {
     // Showing an alert message with the error message if there was an error while sending the request
-    // showAlert('error', error.message);
+    alert(error.response.data.message);
     console.log(error);
   }
 };
 
-document.querySelector('.form').addEventListener('submit', (e) => {
-  e.preventDefault();
-  let email = document.getElementById('email').value;
-  let password = document.getElementById('password').value;
-  login(email, password);
-});
+export const logout = async () => {
+  try {
+    const res = await fetch('http://127.0.0.1:3900/api/v1/users/logout');
+    const data = await res.json();
+
+    console.log(data);
+
+    if (data.status === 'success') {
+      showAlert('success', 'Logged Out Successfully!');
+      location.reload(true);
+    }
+  } catch (error) {
+    showAlert('error', 'Error logging out! Try again.');
+  }
+};

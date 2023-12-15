@@ -16,7 +16,11 @@ userRouter.use(authController.protect);
 userRouter.patch('/updateMe', userController.updateMe);
 userRouter.delete('/deleteMe', userController.deleteMe);
 
-userRouter.patch('/updateMyPassword', authController.updatePassword);
+userRouter.patch(
+  '/updateMyPassword',
+  authController.protect,
+  authController.updatePassword,
+);
 userRouter.get('/me', userController.getMe, userController.getUserBasedOnId);
 
 /**RESTRICT TO ADMIN */

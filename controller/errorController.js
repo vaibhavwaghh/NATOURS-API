@@ -24,31 +24,53 @@ const handleValidationError = (err) => {
   return new AppError(message, 400);
 };
 
-const sendErrorDev = (err, res) => {
-  res.status(err.statusCode).json({
-    status: err.status,
-    error: err,
-    message: err.message,
-    stack: err.stack,
-  });
-};
-
-const sendErrorProd = (err, res) => {
-  /**OPERATIONAL (TRUSTED ) ERRORS SEND MESSAGE TO CLIENT */
-  if (err.isOperational) {
+const sendErrorDev = (err, req, res) => {
+  /**1) FOR API */
+  if (req.originalUrl.startsWith('/api')) {
     res.status(err.statusCode).json({
       status: err.status,
+      error: err,
       message: err.message,
+      stack: err.stack,
     });
   } else {
-    /**PROGRAMMING OR OTHER UNKNOWN (NOT TRUSTED)ERRRORS : DO NOT LEAK DETAILS TO CLIENT */
-    /**LOG ERROR */
-    console.error('ERROR', err);
-    /**SEND A MESSAGE */
-    res.status(500).json({
-      status: 'ERROR',
-      message: 'Something went wrong',
-    });
+    /**2) FOR RENDERED WEBSITE */
+    res
+      .status(err.statusCode)
+      .render('error', { title: 'Something went wrong!', msg: err.message });
+  }
+};
+const sendErrorProd = (err, req, res) => {
+  /**OPERATIONAL (TRUSTED ) ERRORS SEND MESSAGE TO CLIENT */
+  if (req.originalUrl.startsWith('/api')) {
+    /**1) FOR API */
+    if (err.isOperational) {
+      return res.status(err.statusCode).json({
+        status: err.status,
+        message: err.message,
+      });
+    } else {
+      /**PROGRAMMING OR OTHER UNKNOWN (NOT TRUSTED)ERRRORS : DO NOT LEAK DETAILS TO CLIENT */
+      /**LOG ERROR */
+      console.error('ERROR', err);
+      return res.status(500).json({
+        status: 'ERROR',
+        message: 'Something went wrong',
+      });
+    }
+  } else {
+    /**2) FOR RENDERED WEBSITE */
+    if (err.isOperational) {
+      return res
+        .status(err.statusCode)
+        .render('error', { title: 'Something went wrong!', msg: err.message });
+    } else {
+      console.log(err);
+      return res.status(err.statusCode).render('error', {
+        title: 'Something went wrong!',
+        msg: err.message,
+      });
+    }
   }
 };
 module.exports = (err, req, res, next) => {
@@ -64,7 +86,7 @@ module.exports = (err, req, res, next) => {
   console.log(process.env.NODE_ENV);
 
   if (process.env.NODE_ENV === 'development') {
-    sendErrorDev(err, res);
+    sendErrorDev(err, req, res);
     /**BUG */
   } else {
     if (err.name === 'CastError') {
@@ -83,6 +105,6 @@ module.exports = (err, req, res, next) => {
     if (err.name === 'TokenExpiredError') {
       err = handleTokenExpiredError(err);
     }
-    sendErrorProd(err, res);
+    sendErrorProd(err, req, res);
   }
 };
