@@ -48,7 +48,7 @@ exports.signup = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.login = async (req, res, next) => {
-  console.log(req.body);
+  // console.log(req.body);
   // if (!req.body.email.email) {
   const { email, password } = req.body;
   // }
@@ -71,7 +71,7 @@ exports.login = async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect username or password', 401));
   }
-  console.log('HELLO user', user);
+  // console.log('HELLO user', user);
   /**3) IF VERIFICATION IS SUCCESSFUL THEN SEND A TOKEN TO THE USER  */
   createSendToken(user, 200, res);
 };
