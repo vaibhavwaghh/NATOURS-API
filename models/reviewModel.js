@@ -64,30 +64,30 @@ reviewSchema.statics.calcAverageRating = async function (tourId) {
   ]);
   if (stats.length > 0) {
     await Tour.findByIdAndUpdate(tourId, {
-      ratingQuantity: stats[0].nRating,
-      ratingAverage: stats[0].avgRating,
+      ratingsQuantity: stats[0].nRating,
+      ratingsAverage: stats[0].avgRating,
     });
   } else {
     await Tour.findByIdAndUpdate(tourId, {
-      ratingQuantity: 0,
-      ratingAverage: 4.5,
+      ratingsQuantity: 0,
+      ratingsAverage: 4.5,
     });
   }
   console.log(stats);
 };
 
-/**CHANGE RATING-QUANTITY AND AVERAGE WHEN UPDATE OR DELETE A REVIEW ON TOUR */
-/**BUG --> ERROR MongooseError: Operation `users.findOne()` buffering timed out after 10000ms*/
-reviewSchema.pre(/^findOneAnd/, async function (next) {
-  this.r = await this.findOne();
-  // console.log(this.r);
-  next();
-});
+// /**CHANGE RATING-QUANTITY AND AVERAGE WHEN UPDATE OR DELETE A REVIEW ON TOUR */
+// /**BUG --> ERROR MongooseError: Operation `users.findOne()` buffering timed out after 10000ms*/
+// reviewSchema.pre(/^findOneAnd/, async function (next) {
+//   this.r = await this.findOne();
+//   // console.log(this.r);
+//   next();
+// });
 
-reviewSchema.post(/^findOneAnd/, async function () {
-  // await this.findOne(); does NOT work here, query has already executed
-  await this.r.constructor.calcAverageRatings(this.r.tour);
-});
+// reviewSchema.post(/^findOneAnd/, async function () {
+//   // await this.findOne(); does NOT work here, query has already executed
+//   await this.r.constructor.calcAverageRatings(this.r.tour);
+// });
 
 /**CHANGE RATING-QUANTITY AND AVERAGE WHEN NEW REVIEW IS CREATED ON TOUR */
 reviewSchema.post('save', function () {

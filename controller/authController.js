@@ -24,6 +24,7 @@ const createSendToken = (user, statusCode, res) => {
   }
   res.cookie('jwt', token, cookieOptions);
   user.password = undefined;
+  console.log(token, user);
   res.status(statusCode).json({
     status: 'success',
     token: token,
@@ -47,17 +48,30 @@ exports.signup = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.login = async (req, res, next) => {
+  console.log(req.body);
+  // if (!req.body.email.email) {
   const { email, password } = req.body;
+  // }
+  // } else {
+  //   const email = req.body.email.email;
+  //   const password = req.body.email.password;
+  // }
+  console.log(email, password, req.body);
   /**1) CHECK IF BOTH EMAIL AND PASSWORD WAS ENTERED BY USER AND GENERATE AN ERROR MESSAGE IF NOT ENTERED  */
   if (!email || !password) {
-    return next(new AppError('Please provide email id and password!!'), 401);
+    return next(
+      new AppError(
+        `Please provide email id and password!! madarchod ${req.body}`,
+      ),
+      401,
+    );
   }
   /**2) VERIFY WHETHER THE USER ENTERED EMAIL AND PASSWORD ARE ALREADY PRESENT IN MY DATABASE  */
   const user = await User.findOne({ email }).select('+password');
-  console.log(user);
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect username or password', 401));
   }
+  console.log('HELLO user', user);
   /**3) IF VERIFICATION IS SUCCESSFUL THEN SEND A TOKEN TO THE USER  */
   createSendToken(user, 200, res);
 };
@@ -76,7 +90,7 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
   if (!token) {
     return next(
       new AppError(
-        'You are currently not logged in . Please login to get access',
+        'You are currently not logged in . Please login to get access MADARCHOD HAI TU',
         401,
       ),
     );
@@ -110,6 +124,42 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
   next();
 });
 
+exports.isLoggedIn = catchAsyncErrors(async (req, res, next) => {
+  /**1) Get the token and check if it is present or not */
+  if (req.cookies.jwt) {
+    try {
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.jwt_secret_private_key,
+      );
+      /**2) Check if user still exists (IF I HAVE DELETED USER FROM DATABASE AFTER I SIGNUP THE USER)*/
+      const freshUser = await User.findById(decoded.id);
+      if (!freshUser) {
+        return next();
+      }
+      /**3) Check if user changed password after token was issued */
+      if (freshUser.changePasswordAfter(decoded.iat)) {
+        return next();
+      }
+      /**4) GRANT ACCESS TO PROTECTED ROUTES-->IMP IN RESTRICT-TO */
+      res.locals.user = freshUser;
+      return next();
+    } catch (err) {
+      return next();
+    }
+  } else {
+    next();
+  }
+});
+exports.logOut = (req, res) => {
+  res.cookie('jwt', 'loggedOut', {
+    expires: new Date(Date.now() + 10 * 10000),
+    httpOnly: true,
+  });
+  res.status(200).json({
+    status: 'success',
+  });
+};
 exports.restrictTo = (...roles) => {
   /**WE CANNOT PASS PARAMETER TO MIDDLE-WARE FUNCTION SO WE HAVE CREATED A WRAPPER FUNCTION WHICH WILL RETURN MIDDLE-WARE FUNCTION */
   return (req, res, next) => {

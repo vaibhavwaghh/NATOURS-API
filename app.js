@@ -8,52 +8,82 @@ const xss = require('xss-clean');
 const hpp = require('hpp');
 const tourRouter = require('./routes/tourRoutes');
 const userRouter = require('./routes/userRoutes');
+const viewRouter = require('./routes/viewRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controller/errorController');
-
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const compression = require('compression');
+const { application } = require('express');
 const app = express();
-/**INITIALIZING PUG */
+
+// Because heroku acts as a proxy
+app.enable('trust express');
+
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, 'views'));
-/**SERVING STATIC FILES -->ACCESS */
-app.use(express.static(`${__dirname}/public`));
 
-app.get('/', (req, res) => {
-  res.status(200).render('base', {
-    tour: 'The Forest hiker',
-    user: 'Vaibhav',
-  });
-});
-/**SET SECURITY HTTP HEADERS */
-app.use(helmet());
-/**USING MORGAN LIBRARY --> DEVELOPMENT LOGGING*/
+// 1) GLOBAL MIDDLEWARES
+
+// Implement CORS
+app.use(cors());
+
+app.options('*', cors());
+
+// Serving static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Set security HTTP headers
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'", 'https:', 'http:', 'data:', 'ws:'],
+      baseUri: ["'self'"],
+      fontSrc: ["'self'", 'https:', 'http:', 'data:'],
+      scriptSrc: ["'self'", 'https:', 'http:', 'blob:'],
+      styleSrc: ["'self'", 'https:', 'http:', 'unsafe-inline'],
+    },
+  }),
+);
+
+// Developement Logging
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 
-/**LIMIT NUMBER OF USER REQUEST FROM SAME API */
+// Set limit--> It will allow 100 requests in 1hr from a particular IP
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
-  message: 'To many req from this IP . Try again in 1hr',
+  message: 'Too many requests from this IP, please try again in an hour!',
 });
 app.use('/api', limiter);
 
-/**BODY PARSER --> READING DATA FROM BODY INTO REQ.BODY */
-app.use(express.json({ limit: '10kb' }));
+// app.post(
+//   '/webhook-checkout',
+//   express.raw({ type: 'application / json' }),
+//   bookingController.webhookCheckout,
+// );
 
-/**DATA SANITIZATION --> AGAINST NOSQL QUERY INJECTIONS */
+// Body parser, reading data from body into req.body
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(cookieParser());
+
+// Data sanitization against NoSQL query injection
 app.use(mongoSanitize());
-/**DATA SANITIZATION --> AGAINST XSS */
+
+// Data sanitization against XSS
 app.use(xss());
-/**PREVENT PARAMETER POLLUTION */
+
+// Prevent parameter pollution
 app.use(
   hpp({
     whitelist: [
       'duration',
-      'ratingsQuantity',
       'ratingsAverage',
+      'ratingsQuantity',
       'maxGroupSize',
       'difficulty',
       'price',
@@ -61,24 +91,34 @@ app.use(
   }),
 );
 
-/**ROUTER USAGE */
+app.use(compression());
+
+// app.use((req, res, next) => {
+//   console.log('Hello from the middleware 👋');
+//   next();
+// });
+
+// Test Middleware
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  // console.log(req.cookies.jwt);
+  // console.log(x); // testing
+
+  next();
+});
+
+// 3) ROUTES
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
-/**UNHANDLED ROUTES */
-app.all('*', (req, res, next) => {
-  // res.status(404).json({
-  //   status: 'failed',
-  //   message: `Cant find ${req.originalUrl} on this request`,
-  // });
-  // const err = new Error(`Cant find ${req.originalUrl} on this request`);
-  // err.statusCode = 404;
-  // err.status = 'fail';
-  // // console.log(err);
+// app.use('/api/v1/bookings', bookingRouter);
 
-  next(new AppError(`Cant find ${req.originalUrl} on this request`, 404));
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server`));
 });
 
-/**ERROR HANDLING MIDDLEWARE --> 4 PARAMETERS */
+// GLOBAL ERROR HANDLING MIDLEWARE
 app.use(globalErrorHandler);
+
 module.exports = app;

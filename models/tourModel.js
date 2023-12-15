@@ -35,14 +35,14 @@ const tourSchema = new mongoose.Schema(
         message: 'Difficulty is either easy or medium or difficult',
       },
     },
-    ratingAverage: {
+    ratingsAverage: {
       type: Number,
       default: 4.5,
       min: [1, 'Rating must be above 1.0'],
       max: [5, 'Rating must be below 5.0'],
       set: (val) => Math.round(val * 10) / 10,
     },
-    ratingQuantity: { type: Number, default: 0 },
+    ratingsQuantity: { type: Number, default: 0 },
     price: {
       type: Number,
       required: [true, 'A tour must have a price'],
@@ -129,7 +129,7 @@ const tourSchema = new mongoose.Schema(
 );
 
 /**USING INDEXING IN MONGODB */
-tourSchema.index({ price: 1, ratingAverage: -1 });
+tourSchema.index({ price: 1, ratingsAverage: -1 });
 tourSchema.index({ slug: 1 });
 tourSchema.index({ startLocation: '2dsphere' });
 /**REFERENCING USING VIRTUAL POPULATE */
