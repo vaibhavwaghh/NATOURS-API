@@ -1,6 +1,6 @@
-const multer = require('multer');
-const sharp = require('sharp');
 const catchAsyncError = require('../utils/catchAsyncError');
+const sharp = require('sharp');
+const multer = require('multer');
 const AppError = require('../utils/appError');
 const User = require('./../models/userModel');
 const factory = require('./handlerFactory');
@@ -55,6 +55,7 @@ exports.uploadUserPhoto = upload.single('photo');
 exports.resizeUserPhoto = catchAsyncError(async (req, res, next) => {
   if (!req.file) return next();
   req.file.filename = `user-${req.user.id}-${Date.now()}.jpeg`;
+  console.log(req.file.filename);
   await sharp(req.file.buffer)
     .resize(500, 500)
     .toFormat('jpeg')
@@ -65,11 +66,13 @@ exports.resizeUserPhoto = catchAsyncError(async (req, res, next) => {
 
 const filterObj = (obj, ...allowedFields) => {
   const newObject = {};
+  console.log('FILTER PARAMS --> ', obj, allowedFields);
   Object.keys(obj).forEach((el) => {
     if (allowedFields.includes(el)) {
       newObject[el] = obj[el];
     }
   });
+  console.log('FILTER GENERATED --> ', newObject);
   return newObject;
 };
 exports.createNewUser = (req, res) => {
@@ -89,13 +92,16 @@ exports.updateMe = catchAsyncError(async (req, res, next) => {
     );
   }
   /**2) Filter out unwanted field names that are not allowed to be updated*/
+  // console.log('This is req object -->', req);
+  console.log('This is req body and file-->', req.body, req.file);
+
   const filteredBody = filterObj(req.body, 'name', 'email');
 
   /**UPDATE THE USER PHOTO IN DATABASE */
   if (req.file) {
     filteredBody.photo = req.file.filename;
   }
-  console.log(filteredBody);
+  console.log('This is filteredBody-->', filteredBody);
   /**3) Update the user document*/
   const updatedUser = await User.findByIdAndUpdate(req.user.id, filteredBody, {
     new: true,
