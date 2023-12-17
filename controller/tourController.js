@@ -3,6 +3,73 @@ const APIFeatures = require('./../utils/apiFeatures');
 const catchAsyncErrors = require('../utils/catchAsyncError');
 const AppError = require('../utils/appError');
 const factory = require('./handlerFactory');
+const multer = require('multer');
+const sharp = require('sharp');
+
+const multerStorage = multer.memoryStorage();
+
+const multerFiler = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    /**If the file is not an image file, call the callback with an error object and `false`*/
+    cb(new AppError('Not an image! Please upload only images.', 400), false);
+  }
+};
+
+const upload = multer({
+  storage: multerStorage,
+  fileFilter: multerFiler,
+});
+
+exports.uploadTourImages = upload.fields([
+  { name: 'imageCover', maxCount: 1 },
+  { name: 'images', maxCount: 3 },
+]);
+/**UPLOADING 1 PHOTO --> upload.single('photo');*/
+/**UPLOADING MULTIPLE PHOTO --> upload.array('photo',5)*/
+
+exports.resizeTourImages = catchAsyncErrors(async (req, res, next) => {
+  console.log(req.files);
+  if (!req.files.imageCover || !req.files.images) return next();
+
+  /**1) IMAGE COVER */
+  const imageCoverFileName = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+
+  await sharp(req.files.imageCover[0].buffer)
+    .resize(2000, 1333)
+    .toFormat('jpeg')
+    .jpeg({ quality: 90 })
+    .toFile(`public/img/tours/${imageCoverFileName}`);
+  req.body.imageCover = imageCoverFileName;
+
+  /**2) ARRAY OF IMAGES */
+  // req.body.images = [];
+  // req.files.images.forEach(async (file, i) => {
+  //   const fileName = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+  //   await sharp(req.files.imageCover[0].buffer)
+  //     .resize(2000, 1333)
+  //     .toFormat('jpeg')
+  //     .jpeg({ quality: 90 })
+  //     .toFile(`public/img/tours/${fileName}`);
+  //   req.body.imageCover = imageCoverFileName;
+  // });
+  req.body.images = [];
+  await Promise.all(
+    req.files.images.map(async (file, i) => {
+      const fileName = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+      await sharp(file.buffer)
+        .resize(2000, 1333)
+        .toFormat('jpeg')
+        .jpeg({ quality: 90 })
+        .toFile(`public/img/tours/${fileName}`);
+      req.body.images.push(fileName);
+    }),
+  );
+  console.log(req.body);
+  next();
+});
+
 exports.aliasTopTours = (req, res, next) => {
   /**THIS IS A MIDDLE-WARE FUNCTION . HERE I WANT TO INITIALIZE THE REQ.QUERY OBJECTON MY OWN AND NOT FROM USER */
   req.query.limit = '5';
