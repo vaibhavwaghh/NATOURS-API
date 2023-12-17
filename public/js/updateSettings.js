@@ -2,6 +2,7 @@ import { showAlert } from './alerts'; // Importing a function named "showAlert" 
 
 // Defining a function named "updateSettings" that takes two parameters: "data" and "type"
 export const updateSettings = async (data, type) => {
+  console.log('NAME', data);
   try {
     const url =
       type === 'password'

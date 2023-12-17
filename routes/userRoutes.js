@@ -1,6 +1,8 @@
 const express = require('express');
+
 const authController = require('./../controller/authController');
 const userController = require('../controller/userController');
+
 /**ROUTES FOR USER */
 const userRouter = express.Router();
 
@@ -13,7 +15,12 @@ userRouter.patch('/resetPassword/:token', authController.resetPassword);
 /**PROTECT ALL ROUTES AFTER THIS MIDDLEWARE */
 userRouter.use(authController.protect);
 
-userRouter.patch('/updateMe', userController.updateMe);
+userRouter.patch(
+  '/updateMe',
+  userController.uploadUserPhoto,
+  userController.resizeUserPhoto,
+  userController.updateMe,
+);
 userRouter.delete('/deleteMe', userController.deleteMe);
 
 userRouter.patch(

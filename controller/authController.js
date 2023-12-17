@@ -87,7 +87,7 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
     token = req.headers.authorization.split(' ')[1];
   }
   // Otherwise, check for a cookie named "jwt" and use its value as the token
-  console.log('vaibhav the great', token);
+  // console.log('vaibhav the great', token);
   if (!token) {
     return next(
       new AppError(
@@ -161,6 +161,7 @@ exports.logOut = (req, res) => {
     expires: new Date(Date.now() + 10 * 10000),
     httpOnly: true,
   });
+
   res.status(200).json({
     status: 'success',
   });

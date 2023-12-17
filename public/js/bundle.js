@@ -6782,9 +6782,10 @@ var updateSettings = exports.updateSettings = /*#__PURE__*/function () {
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
-          _context.prev = 0;
+          console.log('NAME', data);
+          _context.prev = 1;
           url = type === 'password' ? "http://127.0.0.1:3900/api/v1/users/updateMyPassword" : "http://127.0.0.1:3900/api/v1/users/updateMe";
-          _context.next = 4;
+          _context.next = 5;
           return fetch(url, {
             // Sending a PATCH request to the server to update the user's data
             method: 'PATCH',
@@ -6795,11 +6796,11 @@ var updateSettings = exports.updateSettings = /*#__PURE__*/function () {
               data: data
             })
           });
-        case 4:
+        case 5:
           res = _context.sent;
-          _context.next = 7;
+          _context.next = 8;
           return res.json();
-        case 7:
+        case 8:
           resData = _context.sent;
           // Parsing the response data as JSON and assigning it to a variable named "resData"
           // Extracting status and message from resData using destructuring assignment
@@ -6815,19 +6816,19 @@ var updateSettings = exports.updateSettings = /*#__PURE__*/function () {
             // If the server response status is not "success"
             (0, _alerts.showAlert)('error', message); // Show an error message to the user
           }
-          _context.next = 16;
+          _context.next = 17;
           break;
-        case 12:
-          _context.prev = 12;
-          _context.t0 = _context["catch"](0);
+        case 13:
+          _context.prev = 13;
+          _context.t0 = _context["catch"](1);
           console.log(_context.t0);
           // If there is an error in the try block
           (0, _alerts.showAlert)('error', _context.t0.message); // Show an error message to the user
-        case 16:
+        case 17:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[0, 12]]);
+    }, _callee, null, [[1, 13]]);
   }));
   return function updateSettings(_x, _x2) {
     return _ref.apply(this, arguments);
@@ -7059,7 +7060,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "64410" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "53495" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
