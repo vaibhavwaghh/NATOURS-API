@@ -6778,62 +6778,82 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 // Defining a function named "updateSettings" that takes two parameters: "data" and "type"
 var updateSettings = exports.updateSettings = /*#__PURE__*/function () {
   var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(data, type) {
-    var url, res, resData, status, message;
+    var xhr;
     return _regeneratorRuntime().wrap(function _callee$(_context) {
       while (1) switch (_context.prev = _context.next) {
         case 0:
-          console.log('NAME', data);
-          _context.prev = 1;
-          url = type === 'password' ? "http://127.0.0.1:3900/api/v1/users/updateMyPassword" : "http://127.0.0.1:3900/api/v1/users/updateMe";
-          _context.next = 5;
-          return fetch(url, {
-            // Sending a PATCH request to the server to update the user's data
-            method: 'PATCH',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              data: data
-            })
-          });
-        case 5:
-          res = _context.sent;
-          _context.next = 8;
-          return res.json();
-        case 8:
-          resData = _context.sent;
-          // Parsing the response data as JSON and assigning it to a variable named "resData"
-          // Extracting status and message from resData using destructuring assignment
-          status = resData.status, message = resData.message; // If the server response status is "success"
-          if (status === 'success') {
-            (0, _alerts.showAlert)('success', " Updated Successfully!"); // Show a success message to the user
+          console.log('CURRENT DATA -->', data);
+          xhr = new XMLHttpRequest();
+          xhr.open('PATCH', 'http://127.0.0.1:3900/api/v1/users/updateMe'); // Specify the URL and method
+          xhr.onreadystatechange = function () {
+            if (xhr.readyState === XMLHttpRequest.DONE) {
+              if (xhr.status === 200) {
+                // Request was successful, handle response
+                var response = xhr.responseText;
+                console.log('Response:', response);
+                (0, _alerts.showAlert)('success', " Updated Successfully!"); // Show a success message to the user
 
-            // Reload the page after successful update
-            setTimeout(function () {
-              location.reload(); // Reload the page after a delay of 1000 milliseconds (1 second)
-            }, 1000);
-          } else {
-            // If the server response status is not "success"
-            (0, _alerts.showAlert)('error', message); // Show an error message to the user
-          }
-          _context.next = 17;
-          break;
-        case 13:
-          _context.prev = 13;
-          _context.t0 = _context["catch"](1);
-          console.log(_context.t0);
-          // If there is an error in the try block
-          (0, _alerts.showAlert)('error', _context.t0.message); // Show an error message to the user
-        case 17:
+                // Reload the page after successful update
+                window.location.reload();
+              } else {
+                // Request failed
+                (0, _alerts.showAlert)('error', message);
+              }
+            }
+          };
+          xhr.send(data);
+        case 5:
         case "end":
           return _context.stop();
       }
-    }, _callee, null, [[1, 13]]);
+    }, _callee);
   }));
   return function updateSettings(_x, _x2) {
     return _ref.apply(this, arguments);
   };
 }();
+// Send FormData as the request body
+
+//   try {
+//     const url =
+//       type === 'password'
+//         ? `http://127.0.0.1:3900/api/v1/users/updateMyPassword`
+//         : `http://127.0.0.1:3900/api/v1/users/updateMe`;
+
+//     const res = await fetch(url, {
+//       // Sending a PATCH request to the server to update the user's data
+//       method: 'PATCH',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify({
+//         data,
+//       }),
+//     });
+
+//     const resData = await res.json(); // Parsing the response data as JSON and assigning it to a variable named "resData"
+
+//     // Extracting status and message from resData using destructuring assignment
+//     const { status, message } = resData;
+
+//     // If the server response status is "success"
+//     if (status === 'success') {
+//       showAlert('success', ` Updated Successfully!`); // Show a success message to the user
+
+//       // Reload the page after successful update
+//       setTimeout(() => {
+//         location.reload(); // Reload the page after a delay of 1000 milliseconds (1 second)
+//       }, 1000);
+//     } else {
+//       // If the server response status is not "success"
+//       showAlert('error', message); // Show an error message to the user
+//     }
+//   } catch (error) {
+//     console.log(error);
+//     // If there is an error in the try block
+//     showAlert('error', error.message); // Show an error message to the user
+//   }
+// };
 },{"./alerts":"alerts.js"}],"index.js":[function(require,module,exports) {
 "use strict";
 
@@ -6992,7 +7012,7 @@ if (logOut) {
 if (updateNameEmail) {
   updateNameEmail.addEventListener('submit', /*#__PURE__*/function () {
     var _ref = _asyncToGenerator( /*#__PURE__*/_regeneratorRuntime().mark(function _callee(e) {
-      var name, email, photo, xhr, formData;
+      var name, email, photo, formData;
       return _regeneratorRuntime().wrap(function _callee$(_context) {
         while (1) switch (_context.prev = _context.next) {
           case 0:
@@ -7000,38 +7020,12 @@ if (updateNameEmail) {
             name = document.getElementById('name').value;
             email = document.getElementById('email').value;
             photo = document.getElementById('photo').files[0]; // Assuming you want to upload the first selected file
-            // const formData = new FormData(); // Create a FormData object
-            // formData.append('name', name); // Append name field
-            // formData.append('email', email); // Append email field
-            // formData.append('photo', photo); // Append photo field
-            // console.log('Form Data:', formData);
-            // const data = {
-            //   name: document.getElementById('name').value,
-            //   email: document.getElementById('email').value,
-            //   // You might handle the photo differently, like converting it to base64 or sending it separately based on the API requirements
-            // };
-            xhr = new XMLHttpRequest();
-            formData = new FormData(); // Add data to FormData
+            formData = new FormData();
             formData.append('name', name);
             formData.append('email', email);
             formData.append('photo', photo);
-            xhr.open('PATCH', 'http://127.0.0.1:3900/api/v1/users/updateMe'); // Specify the URL and method
-            xhr.onreadystatechange = function () {
-              if (xhr.readyState === XMLHttpRequest.DONE) {
-                if (xhr.status === 200) {
-                  // Request was successful, handle response
-                  var response = xhr.responseText;
-                  console.log('Response:', response);
-                } else {
-                  // Request failed
-                  console.error('Request failed with status:', xhr.status);
-                }
-              }
-            };
-
-            // Send FormData as the request body
-            xhr.send(formData);
-          case 12:
+            (0, _updateSettings.updateSettings)(formData, 'data');
+          case 9:
           case "end":
             return _context.stop();
         }
@@ -7041,18 +7035,6 @@ if (updateNameEmail) {
       return _ref.apply(this, arguments);
     };
   }());
-  //     const form = new FormData();
-  //     form.append('name', document.getElementById('name').value);
-  //     form.append('email', document.getElementById('email').value);
-  //     form.append('photo', document.getElementById('photo').files[0]);
-  //     let name = document.getElementById('name').value;
-  //     let email = document.getElementById('email').value;
-  //     let photo = document.getElementById('photo').files[0];
-  //     console.log('BADVU', form);
-  //     alert(form.photo);
-
-  //     updateSettings({ name, email }, 'data');
-  //   });
 }
 if (updatePasswordUser) {
   updatePasswordUser.addEventListener('submit', /*#__PURE__*/function () {
@@ -7114,7 +7096,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49284" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "49764" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];
