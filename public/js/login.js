@@ -46,7 +46,7 @@ export const logout = async () => {
 
     if (data.status === 'success') {
       showAlert('success', 'Logged Out Successfully!');
-      location.reload(true);
+      window.location.href = '/';
     }
   } catch (error) {
     showAlert('error', 'Error logging out! Try again.');

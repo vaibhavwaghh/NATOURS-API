@@ -1,11 +1,14 @@
 import '@babel/polyfill';
 import { login, logout } from './login';
 import { updateSettings } from './updateSettings';
-import { showAlert } from './alerts';
+import { bookTour } from './stripe';
+import { signup } from './signup';
 const loginForm = document.querySelector('.form--login');
 const logOut = document.querySelector('.nav__el--logout');
 const updateNameEmail = document.querySelector('.form-user-data');
 const updatePasswordUser = document.querySelector('.form-user-password');
+const bookBtn = document.getElementById('book-tour');
+const signupBtn = document.querySelector('.form--signup');
 if (loginForm) {
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -55,5 +58,30 @@ if (updatePasswordUser) {
     passwordCurrent = userPasswordForm['password-current'].value = '';
     password = userPasswordForm['password'].value = '';
     passwordConfirm = userPasswordForm['password-confirm'].value = '';
+  });
+}
+
+if (bookBtn) {
+  bookBtn.addEventListener('click', (e) => {
+    console.log('BUTTON WAS CLICKED');
+    e.target.innerHTML = 'Processing...';
+    const tourId = e.target.dataset.tourId;
+    bookTour(tourId);
+  });
+}
+
+if (signupBtn) {
+  signupBtn.addEventListener('submit', (e) => {
+    // Preventing the default form submission behavior
+    e.preventDefault();
+
+    // Getting the name, email, password and passwordConfirm values from the form inputs
+    let name = document.getElementById('name').value;
+    let email = document.getElementById('email').value;
+    let password = document.getElementById('password').value;
+    let passwordConfirm = document.getElementById('passwordconfirm').value;
+
+    // Calling the signup function with name, email, password and passwordConfirm values
+    signup(name, email, password, passwordConfirm);
   });
 }

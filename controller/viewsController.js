@@ -1,5 +1,6 @@
 const Tour = require('./../models/tourModel');
 const User = require('./../models/userModel');
+const Booking = require('./../models/bookingModel');
 const catchAsyncError = require('./../utils/catchAsyncError');
 const AppError = require('./../utils/appError');
 
@@ -63,3 +64,25 @@ exports.updateUserData = catchAsyncError(async (req, res, next) => {
     user: updateUser,
   });
 });
+
+exports.getMyTours = catchAsyncError(async (req, res, next) => {
+  /**1) FIND ALL BOOKINGS */
+  const bookings = await Booking.find({ user: req.user.id });
+  /**2) FIND TOUR AND RETURN THEIR ID'S*/
+  const tourIds = bookings.map((el) => el.tour);
+  const tours = await Tour.find({ _id: { $in: tourIds } });
+  if (tours) {
+    if (tours.length === 0)
+      return next(new AppError('YOU HAVE NOT BOOKED ANY TOUR !! '));
+  }
+  res.status(200).render('overview', {
+    title: 'My tours',
+    tours,
+  });
+});
+exports.getSignupForm = (req, res) => {
+  // Render the signup template and send it to the client with a title of "Create your account!"
+  res.status(200).render('signup', {
+    title: 'Create your account!',
+  });
+};

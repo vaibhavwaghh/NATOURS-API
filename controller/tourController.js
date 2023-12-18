@@ -52,7 +52,7 @@ exports.resizeTourImages = catchAsyncErrors(async (req, res, next) => {
   //     .toFormat('jpeg')
   //     .jpeg({ quality: 90 })
   //     .toFile(`public/img/tours/${fileName}`);
-  //   req.body.imageCover = imageCoverFileName;
+  //    req.body.images.push(fileName);
   // });
   req.body.images = [];
   await Promise.all(
