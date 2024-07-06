@@ -242,16 +242,18 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
 exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
   /**1) GET THE USER FROM THE COLLECTION*/
   const user = await User.findById(req.user.id).select('+password');
-  // console.log(req.body, user.password);
+  console.log('This is user body-->', req.body, user);
 
   /**2) CHECK IF POSTED CURRENT PASSWORD IS CORRECT OR NOT*/
 
-  if (!user.correctPassword(req.body.passwordCurrent, user.password))
+  if (!user.correctPassword(req.body.data.passwordCurrent, user.password))
     return next(new AppError('You have entered incorrect Password ', 401));
 
   /**3) IF SO THEN UPDATE PASSWORD --> we cannot user findByIdAndUpdate*/
 
-  console.log(req.body, req.body.data.password, req.body.passwordConfirm);
+  /**FOR API ==>  req.body.password
+   * FOR FRONT-END ==> req.body.data.password
+   */
   user.password = req.body.data.password;
   user.passwordConfirm = req.body.data.passwordConfirm;
   await user.save();

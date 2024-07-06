@@ -8,7 +8,6 @@ process.on('uncaughtException', (err) => {
   });
 });
 dotenv.config({ path: `${__dirname}/config.env` });
-console.log(process.env.PASSWORD);
 const app = require('./app');
 
 /**ENVIRONMENT VARIABLES*/
@@ -25,7 +24,7 @@ mongoose
 const port = process.env.PORT || 3000;
 /**START THE SERVER */
 const server = app.listen(port, '127.0.0.1', () => {
-  console.log('Listening buddy');
+  console.log('Server is listening');
 });
 process.on('unhandledRejection', (err) => {
   console.log(err.name, err.message);

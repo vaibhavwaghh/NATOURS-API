@@ -1,6 +1,6 @@
 import '@babel/polyfill';
 import { login, logout } from './login';
-import { updateSettings } from './updateSettings';
+import { updatePassword, updatePhotoName } from './updateSettings';
 import { bookTour } from './stripe';
 import { signup } from './signup';
 const loginForm = document.querySelector('.form--login');
@@ -35,7 +35,7 @@ if (updateNameEmail) {
     formData.append('email', email);
     formData.append('photo', photo);
 
-    updateSettings(formData, 'data');
+    await updatePhotoName(formData, 'data');
   });
 }
 
@@ -47,11 +47,8 @@ if (updatePasswordUser) {
     let passwordCurrent = document.getElementById('password-current').value;
     let password = document.getElementById('password').value;
     let passwordConfirm = document.getElementById('password-confirm').value;
-    console.log(passwordCurrent, password, passwordConfirm);
-    await updateSettings(
-      { passwordCurrent, password, passwordConfirm },
-      'password',
-    );
+    let data = { passwordCurrent, password, passwordConfirm };
+    await updatePassword(data, 'password');
 
     document.querySelector('.btn--save-password').innerHTML = 'Saved Password';
 
