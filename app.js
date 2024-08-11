@@ -34,6 +34,7 @@ app.use(
   helmet.contentSecurityPolicy({
     directives: {
       defaultSrc: ["'self'"],
+      // connectSrc: ["'self'", 'https://natours-api-z82r.onrender.com'],
     },
   }),
 );
@@ -91,6 +92,11 @@ if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
 app.use(compression());
+// practice middleware
+// app.use((req, res, next) => {
+//   console.log(req.cookies);
+//   next();
+// });
 
 // API routes
 app.use('/', viewRouter);
