@@ -4,7 +4,7 @@ const catchAsyncErrors = require('../utils/catchAsyncError');
 const AppError = require('../utils/appError');
 const factory = require('./handlerFactory');
 const multer = require('multer');
-const sharp = require('sharp');
+// const sharp = require('sharp');
 
 const multerStorage = multer.memoryStorage();
 
@@ -36,12 +36,12 @@ exports.resizeTourImages = catchAsyncErrors(async (req, res, next) => {
   /**1) IMAGE COVER */
   const imageCoverFileName = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
 
-  await sharp(req.files.imageCover[0].buffer)
-    .resize(2000, 1333)
-    .toFormat('jpeg')
-    .jpeg({ quality: 90 })
-    .toFile(`public/img/tours/${imageCoverFileName}`);
-  req.body.imageCover = imageCoverFileName;
+  // await sharp(req.files.imageCover[0].buffer)
+  //   .resize(2000, 1333)
+  //   .toFormat('jpeg')
+  //   .jpeg({ quality: 90 })
+  //   .toFile(`public/img/tours/${imageCoverFileName}`);
+  // req.body.imageCover = imageCoverFileName;
 
   /**2) ARRAY OF IMAGES */
   // req.body.images = [];

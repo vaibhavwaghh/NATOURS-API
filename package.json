@@ -14,7 +14,6 @@
   "license": "ISC",
   "dependencies": {
     "@babel/polyfill": "^7.12.1",
-    "@img/sharp-win32-x64": "^0.33.0",
     "axios": "^0.18.0",
     "bcryptjs": "^2.4.3",
     "compression": "^1.7.4",
@@ -35,7 +34,7 @@
     "ndb": "^0.2.4",
     "nodemailer": "^6.9.7",
     "pug": "^3.0.2",
-    "sharp": "^0.33.0",
+    "sharp": "^0.33.4",
     "slugify": "^1.6.6",
     "stripe": "^7.0.0",
     "validator": "^13.11.0",
