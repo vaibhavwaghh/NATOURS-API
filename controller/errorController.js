@@ -82,8 +82,7 @@ module.exports = (err, req, res, next) => {
   //   message: err.message,
   //   stack: err.stack,
   // });
-  console.log('VAIBHAV');
-  console.log(process.env.NODE_ENV);
+  console.log('THIS IS ERROR THROWN', err);
 
   if (process.env.NODE_ENV === 'development') {
     sendErrorDev(err, req, res);

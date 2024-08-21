@@ -8,13 +8,20 @@ exports.getOverview = catchAsyncError(async (req, res, next) => {
   /**1) GET TOUR DATA FROM COLLECTION */
   const tours = await Tour.find();
 
-  /**2) BUILD TEMPLATE */
   /**3) RENDER THE TEMPLATE  */
-  res.status(200).render('overview', {
-    title: 'All tours',
+  res.status(200).json({
+    status: 'success',
     tours,
   });
 });
+
+exports.getMe = catchAsyncError(async (req, res, next) => {
+  res.status(200).json({
+    status: 'success',
+    users: res.locals.user,
+  });
+});
+
 exports.getTour = catchAsyncError(async (req, res, next) => {
   /**1) GET DATA FOR REQUESTED TOUR (INCLUDE REVIEWS AND GUIDES) */
   const tour = await Tour.findOne({ slug: req.params.slug }).populate({
@@ -75,7 +82,8 @@ exports.getMyTours = catchAsyncError(async (req, res, next) => {
     if (tours.length === 0)
       return next(new AppError('YOU HAVE NOT BOOKED ANY TOUR !! '));
   }
-  res.status(200).render('overview', {
+  res.status(200).json({
+    status: 'success',
     title: 'My tours',
     tours,
   });

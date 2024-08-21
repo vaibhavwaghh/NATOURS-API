@@ -7,6 +7,7 @@ const AppError = require('../utils/appError');
 
 exports.getCheckOutSession = catchAsyncErrors(async (req, res, next) => {
   /**1) GET THE CURRENTLY BOOKED TOUR */
+  console.log('ALO ME CHECKOUT MADHE');
 
   const tour = await Tour.findById(req.params.tourId);
 
@@ -18,9 +19,10 @@ exports.getCheckOutSession = catchAsyncErrors(async (req, res, next) => {
     // Set the mode to "payment" to create a one-time payment
     mode: 'payment',
     // Define the URLs for success and cancellation redirects
-    success_url: `${req.protocol}://${req.get('host')}/?tour=${
-      req.params.tourId
-    }&user=${req.user.id}&price=${tour.price}`,
+    // success_url: `${req.protocol}://${req.get('host')}/?tour=${
+    //   req.params.tourId
+    // }&user=${req.user.id}&price=${tour.price}`,
+    success_url: `${req.get('Referer')}`,
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
     // Set the customer email and client reference ID
     customer_email: req.user.email,
@@ -56,7 +58,10 @@ exports.createBookingCheckOut = catchAsyncErrors(async (req, res, next) => {
     return next();
   }
   await Booking.create({ tour, user, price });
-  res.redirect(req.originalUrl.split('?')[0]);
+  console.log('HA AHE REQ ORIGINAL URL', req.originalUrl);
+
+  res.redirect(req.originalUrl);
+  // res.redirect(req.originalUrl.split('?')[0]);
 });
 
 exports.createBooking = factory.createOne(Booking);

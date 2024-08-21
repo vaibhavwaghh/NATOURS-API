@@ -13,52 +13,56 @@ const createToken = (id) => {
   });
 };
 const createSendToken = (user, statusCode, res) => {
+  // console.log('SEND TOKEN CHYA AAT MADHE', user);
+
   const token = createToken(user._id);
   const cookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.jwt_cookie_expire * 24 * 60 * 60 * 1000,
-    ),
+    // expires: new Date(
+    //   Date.now() + process.env.jwt_cookie_expire * 24 * 60 * 60 * 1000,
+    // ),
     httpOnly: true,
+    secure: true, // Ensures the browser only sends the cookie over HTTPS
+    sameSite: 'None',
   };
-  if (process.env.NODE_ENV === 'production') {
-    cookieOptions.secure = true;
-  }
+
   res.cookie('jwt', token, cookieOptions);
   user.password = undefined;
-  console.log(token, user);
+  console.log('HA AHE FRESH USER', user);
+  console.log('HA AHE NAVIN USER WITH CHANGED PASSWORD', user, token);
+
   res.status(statusCode).json({
     status: 'success',
     token: token,
     data: {
       user,
+      token,
     },
   });
 };
 exports.signup = catchAsyncErrors(async (req, res, next) => {
-  console.log(req.body);
+  // console.log(req.body);
   const newUser = await User.create(req.body);
   const url = `${req.protocol}://${req.get('host')}/me`;
-  console.log(url);
+  // console.log(url);
   await new Email(newUser, url).sendWelcome();
   createSendToken(newUser, 201, res);
 });
 
 exports.login = async (req, res, next) => {
-  // console.log(req.body);
+  console.log(req.body);
   // if (!req.body.email.email) {
+
   const { email, password } = req.body;
   // }
   // } else {
   //   const email = req.body.email.email;
   //   const password = req.body.email.password;
   // }
-  console.log(email, password, req.body);
+
   /**1) CHECK IF BOTH EMAIL AND PASSWORD WAS ENTERED BY USER AND GENERATE AN ERROR MESSAGE IF NOT ENTERED  */
   if (!email || !password) {
     return next(
-      new AppError(
-        `Please provide email id and password!! madarchod ${req.body}`,
-      ),
+      new AppError(`Please provide email id and password!!  ${req.body}`),
       401,
     );
   }
@@ -67,22 +71,23 @@ exports.login = async (req, res, next) => {
   if (!user || !(await user.correctPassword(password, user.password))) {
     return next(new AppError('Incorrect username or password', 401));
   }
-  // console.log('HELLO user', user);
+
   /**3) IF VERIFICATION IS SUCCESSFUL THEN SEND A TOKEN TO THE USER  */
   createSendToken(user, 200, res);
 };
 
 exports.protect = catchAsyncErrors(async (req, res, next) => {
   /**1) Get the token and check if it is present or not */
+  console.log('HA AHE protect REQ CHA COOKIE', req?.cookies?.jwt);
 
   let token;
   if (req.cookies.jwt) {
     token = req.cookies.jwt;
-  } else if (req.headers.authorization.startsWith('Bearer')) {
+  } else if (req.headers.authorization?.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
   }
   // Otherwise, check for a cookie named "jwt" and use its value as the token
-  // console.log('vaibhav the great', token);
+
   if (!token) {
     return next(
       new AppError(
@@ -98,7 +103,6 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
     process.env.jwt_secret_private_key,
   );
 
-  console.log(decoded);
   /**3) Check if user still exists (IF I HAVE DELETED USER FROM DATABASE AFTER I SIGNUP THE USER)*/
   const freshUser = await User.findById(decoded.id);
   if (!freshUser) {
@@ -124,8 +128,54 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
   next();
 });
 
+// exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
+//   console.log('HA AHE ISLOGGED IN');
+
+//   /**1) Get the token and check if it is present or not */
+//   if (req.cookies.jwt) {
+//     try {
+//       const decoded = await promisify(jwt.verify)(
+//         req.cookies.jwt,
+//         process.env.jwt_secret_private_key,
+//       );
+//       /**2) Check if user still exists (IF I HAVE DELETED USER FROM DATABASE AFTER I SIGNUP THE USER)*/
+//       const freshUser = await User.findById(decoded.id);
+
+//       if (!freshUser) {
+//         return next();
+//       }
+//       /**3) Check if user changed password after token was issued */
+//       if (freshUser.changePasswordAfter(decoded.iat)) {
+//         return next();
+//       }
+//       /**4) GRANT ACCESS TO PROTECTED ROUTES-->IMP IN RESTRICT-TO */
+//       res.locals.user = freshUser;
+
+//       // res.status(200).json({
+//       //   status: 'success',
+//       //   user: freshUser,
+//       // });
+//       return next();
+//     } catch (err) {
+//       // res.status(200).json({
+//       //   status: 'unknown',
+//       //   message: 'No fresh user',
+//       // });
+//       return next();
+//     }
+//   } else {
+//     // res.status(200).json({
+//     //   status: 'unknown',
+//     //   message: 'No fresh user',
+//     // });
+//     next();
+//   }
+// });
+
 exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
   /**1) Get the token and check if it is present or not */
+  console.log('HA AHE ISLOGGEDIN REQ CHA COOKIE', req?.cookies?.jwt);
+
   if (req.cookies.jwt) {
     try {
       const decoded = await promisify(jwt.verify)(
@@ -134,6 +184,8 @@ exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
       );
       /**2) Check if user still exists (IF I HAVE DELETED USER FROM DATABASE AFTER I SIGNUP THE USER)*/
       const freshUser = await User.findById(decoded.id);
+      console.log('HA AHE RE FRESH USER');
+
       if (!freshUser) {
         return next();
       }
@@ -143,6 +195,7 @@ exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
       }
       /**4) GRANT ACCESS TO PROTECTED ROUTES-->IMP IN RESTRICT-TO */
       res.locals.user = freshUser;
+
       return next();
     } catch (err) {
       return next();
@@ -151,10 +204,16 @@ exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
     next();
   }
 });
+
 exports.logOut = (req, res) => {
+  // console.log('LOGOUT CALL HUA ');
+
   res.cookie('jwt', 'loggedOut', {
-    expires: new Date(Date.now() + 10 * 10000),
     httpOnly: true,
+    secure: true, // Ensures the browser only sends the cookie over HTTPS
+    sameSite: 'None', // If the original cookie has 'secure', this should too
+    expires: new Date(Date.now() + 10 * 1000), // Set the expiry time as needed
+    path: '/', // Ensure the path is the same as the original cookie
   });
 
   res.status(200).json({
@@ -164,7 +223,6 @@ exports.logOut = (req, res) => {
 exports.restrictTo = (...roles) => {
   /**WE CANNOT PASS PARAMETER TO MIDDLE-WARE FUNCTION SO WE HAVE CREATED A WRAPPER FUNCTION WHICH WILL RETURN MIDDLE-WARE FUNCTION */
   return (req, res, next) => {
-    console.log(req.user.role, roles);
     if (!roles.includes(req.user.role)) {
       next(
         new AppError('You do not have permission to perform this action', 403),
@@ -184,7 +242,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next) => {
 
   /**2) GENERATE A RANDOM TOKEN */
   const resetToken = user.passReset();
-  console.log(resetToken);
+
   await user.save({ validateBeforeSave: false });
   try {
     /**3) SEND IT TO USER'S EMAIL */
@@ -226,8 +284,8 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
   if (!user) {
     return next(new AppError('Token has expired !!', 400));
   }
-  user.password = req.body.password;
-  user.passwordConfirm = req.body.passwordConfirm;
+  user.password = req.password;
+  user.passwordConfirm = req.passwordConfirm;
   user.passwordResetToken = undefined;
   user.passwordResetExpires = undefined;
   await user.save();
@@ -242,20 +300,18 @@ exports.resetPassword = catchAsyncErrors(async (req, res, next) => {
 exports.updatePassword = catchAsyncErrors(async (req, res, next) => {
   /**1) GET THE USER FROM THE COLLECTION*/
   const user = await User.findById(req.user.id).select('+password');
-  console.log('This is user body-->', req.body, user);
+  console.log('ALA RE ALA UPDATE PASSWORD ALA', req.body, user.password);
 
   /**2) CHECK IF POSTED CURRENT PASSWORD IS CORRECT OR NOT*/
 
-  if (!user.correctPassword(req.body.data.passwordCurrent, user.password))
+  if (!user.correctPassword(req.body.passwordCurrent, user.password))
     return next(new AppError('You have entered incorrect Password ', 401));
 
   /**3) IF SO THEN UPDATE PASSWORD --> we cannot user findByIdAndUpdate*/
 
-  /**FOR API ==>  req.body.password
-   * FOR FRONT-END ==> req.body.data.password
-   */
-  user.password = req.body.data.password;
-  user.passwordConfirm = req.body.data.passwordConfirm;
+  // console.log(req.body, req.body.data.password, req.body.passwordConfirm);
+  user.password = req.body.password;
+  user.passwordConfirm = req.body.passwordConfirm;
   await user.save();
 
   /**4) LOG USER IN SEND A JWT*/
