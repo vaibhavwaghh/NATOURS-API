@@ -11,7 +11,6 @@ const userRouter = require('./routes/userRoutes');
 const viewRouter = require('./routes/viewRoutes');
 const reviewRouter = require('./routes/reviewRoutes');
 const bookingRouter = require('./routes/bookingRoutes');
-const myRouter = require('./routes/myRouter');
 const AppError = require('./utils/appError');
 const globalErrorHandler = require('./controller/errorController');
 const cookieParser = require('cookie-parser');
@@ -62,12 +61,7 @@ app.use(
 
 // // The cookieParser() middleware is being used to parse cookies from incoming requests.
 app.use(cookieParser());
-app.use((req, res, next) => {
-  const referer = req.get('Referer');
-  console.log('Referer:', referer);
 
-  next();
-});
 // // Enable Cross-Origin Resource Sharing (CORS) for all routes
 // // app.use(cors());
 
@@ -110,7 +104,11 @@ app.use((req, res, next) => {
 //   console.log(req.cookies);
 //   next();
 // });
-
+app.use((req, res, next) => {
+  const clientUrl = req.get('Referer');
+  console.log('ALI RE ALI QUERY ALI', clientUrl);
+  next();
+});
 app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);

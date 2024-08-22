@@ -79,8 +79,13 @@ exports.getMyTours = catchAsyncError(async (req, res, next) => {
   const tourIds = bookings.map((el) => el.tour);
   const tours = await Tour.find({ _id: { $in: tourIds } });
   if (tours) {
-    if (tours.length === 0)
-      return next(new AppError('YOU HAVE NOT BOOKED ANY TOUR !! '));
+    if (tours.length === 0) {
+      res.status(200).json({
+        status: 'success',
+        message: 'YOU HAVE NOT BOOKED ANY TOUR YET !!',
+      });
+    }
+    // return next(new AppError('YOU HAVE NOT BOOKED ANY TOUR !! '));
   }
   res.status(200).json({
     status: 'success',

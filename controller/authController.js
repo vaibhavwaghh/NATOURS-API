@@ -78,7 +78,6 @@ exports.login = async (req, res, next) => {
 
 exports.protect = catchAsyncErrors(async (req, res, next) => {
   /**1) Get the token and check if it is present or not */
-  console.log('HA AHE protect REQ CHA COOKIE', req?.cookies?.jwt);
 
   let token;
   if (req.cookies.jwt) {
@@ -174,7 +173,6 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
 
 exports.isLoggedIn = catchAsyncError(async (req, res, next) => {
   /**1) Get the token and check if it is present or not */
-  console.log('HA AHE ISLOGGEDIN REQ CHA COOKIE', req?.cookies?.jwt);
 
   if (req.cookies.jwt) {
     try {

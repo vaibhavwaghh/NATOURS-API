@@ -7,7 +7,9 @@ const AppError = require('../utils/appError');
 
 exports.getCheckOutSession = catchAsyncErrors(async (req, res, next) => {
   /**1) GET THE CURRENTLY BOOKED TOUR */
-  console.log('ALO ME CHECKOUT MADHE');
+  const clientUrl = 'http://localhost:5173';
+
+  console.log('ALO ME CHECKOUT MADHE', clientUrl);
 
   const tour = await Tour.findById(req.params.tourId);
 
@@ -22,7 +24,7 @@ exports.getCheckOutSession = catchAsyncErrors(async (req, res, next) => {
     // success_url: `${req.protocol}://${req.get('host')}/?tour=${
     //   req.params.tourId
     // }&user=${req.user.id}&price=${tour.price}`,
-    success_url: `${req.get('Referer')}`,
+    success_url: `${clientUrl}?tour=${req.params.tourId}&user=${req.user.id}&price=${tour.price}`,
     cancel_url: `${req.protocol}://${req.get('host')}/tour/${tour.slug}`,
     // Set the customer email and client reference ID
     customer_email: req.user.email,
@@ -44,6 +46,7 @@ exports.getCheckOutSession = catchAsyncErrors(async (req, res, next) => {
       },
     ],
   });
+  console.log('HA AHE BHAVA APLA SESSION', session);
 
   /**3) CREATE SESSION AS RESPONSE */
   res.status(200).json({
@@ -53,14 +56,26 @@ exports.getCheckOutSession = catchAsyncErrors(async (req, res, next) => {
 });
 
 exports.createBookingCheckOut = catchAsyncErrors(async (req, res, next) => {
-  const { tour, user, price } = req.query;
+  console.log('ALO RE ME CREATE BOOKING CHECKOUT MADHE KASA AHES', req.body);
+
+  const { tour, user, price } = req.body;
   if (!tour && !user && !price) {
+    console.log('CHALO RE BHAVA ME PUDHE');
+
     return next();
   }
-  await Booking.create({ tour, user, price });
-  console.log('HA AHE REQ ORIGINAL URL', req.originalUrl);
+  console.log('KARTO CREATE TOUR THAMB ZARA');
 
-  res.redirect(req.originalUrl);
+  await Booking.create({ tour, user, price });
+
+  const clientUrl = req.get('Referer');
+
+  console.log('HA AHE MAJA CLIENT ANI SERVER URL', clientUrl);
+
+  res.status(200).json({
+    status: 'success',
+    url: clientUrl,
+  });
   // res.redirect(req.originalUrl.split('?')[0]);
 });
 
