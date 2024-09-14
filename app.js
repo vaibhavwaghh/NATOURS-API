@@ -104,11 +104,7 @@ app.use(cookieParser());
 //   console.log(req.cookies);
 //   next();
 // });
-app.use((req, res, next) => {
-  const clientUrl = req.get('Referer');
-  console.log('ALI RE ALI QUERY ALI', clientUrl);
-  next();
-});
+
 app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
