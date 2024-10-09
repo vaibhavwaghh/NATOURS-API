@@ -90,7 +90,7 @@ exports.protect = catchAsyncErrors(async (req, res, next) => {
   if (!token) {
     return next(
       new AppError(
-        'You are currently not logged in . Please login to get access MADARCHOD HAI TU',
+        'You are currently not logged in ',
         401,
       ),
     );
